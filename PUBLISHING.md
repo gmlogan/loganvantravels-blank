@@ -115,11 +115,14 @@ Actions dashboard: <https://github.com/gmlogan/loganvantravels-blank/actions>
 
 ## CMS extras
 
-- **Galleries:** in the post body, choose + → Gallery, then drop or paste
-  several photos onto it at once. Click a photo to add a caption. Use as many
-  galleries per post as you like. Stored as `{{< gallery >}} … {{< /gallery >}}`
-  around ordinary image lines (`layouts/_shortcodes/gallery.html`,
-  `static/admin/gallery.js`, styles in `assets/css/custom.css`).
+- **Galleries:** in the post body, choose Insert → Gallery and tap Upload to
+  pick several photos at once (on a phone the photo library allows
+  multi-select; on a computer you can also drop files). Reorder with the
+  arrows on each photo. Captions are optional, one line per photo in the same
+  order. Use as many galleries per post as you like. Stored as
+  `{{< gallery >}} … {{< /gallery >}}` around ordinary image lines
+  (`layouts/_shortcodes/gallery.html`, `static/admin/gallery.js`, styles in
+  `assets/css/custom.css`).
 - **Trips and Tags pickers:** pick existing ones, or use "Add Trip page" or
   "Add Tag" to create a new one. That writes `content/trips/<slug>/_index.md`
   or `content/tags/<slug>/_index.md` in the same commit as the post.
