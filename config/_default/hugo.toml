@@ -1,0 +1,10 @@
+theme = 'congo'
+baseURL = 'https://gmlogan.github.io/loganvantravels-blank/'
+locale = 'en-gb'
+title = 'Van Travels'
+summaryLength = 25
+
+[permalinks]
+  campervan = '/:slug/'
+  holidays = '/:slug/'
+  pages = '/pages/:slug/'

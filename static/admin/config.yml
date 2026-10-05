@@ -1,0 +1,173 @@
+backend:
+  name: github
+  repo: gmlogan/loganvantravels-blank
+  branch: main
+
+media_folder: ''
+public_folder: ''
+media_libraries:
+  default:
+    config:
+      transformations:
+        raster_image:
+          format: webp   # the only output format Sveltia supports
+          quality: 85
+          width: 2560    # maximum size; larger photos are scaled down
+          height: 2560
+
+collections:
+  - name: pages
+    label: Pages
+    label_singular: Page
+    folder: content/pages
+    path: '{{slug}}/index'
+    media_folder: ''
+    public_folder: ''
+    create: true
+    extension: md
+    format: frontmatter
+    slug: '{{slug}}'
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Slug, name: slug, widget: string, required: false, hint: "Leave blank to derive from the title" }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: campervan_trips
+    label: Campervan Trips
+    label_singular: Campervan trip
+    folder: content/campervan
+    path: "{{year}}-{{month}}-{{day}}-{{slug}}/index"
+    media_folder: ''
+    public_folder: ''
+    create: true
+    slug: "{{slug}}"
+    sortable_fields:
+      fields: [date, title, wp_published]
+      default:
+        field: date
+        direction: descending
+    view_groups:
+      - { label: 'Site type', field: site-types }
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime, format: 'YYYY-MM-DD', date_format: 'YYYY-MM-DD', time_format: false }
+      - { label: Draft, name: draft, widget: boolean, default: false }
+      - { label: Slug, name: slug, widget: string, required: false, hint: "Leave blank to derive from the title" }
+      - { label: Original blog date, name: wp_published, widget: datetime, format: 'YYYY-MM-DD', date_format: 'YYYY-MM-DD', time_format: false, required: false }
+      - { label: Site type, name: site-types, widget: select, required: false,
+          options: [Aire, CAMC, CCC, Independent, Off-Grid, Pub, Event] }
+      - { label: Map link, name: map, widget: string, required: false,
+          hint: "Any Google Maps share link; shows a 'View on map' button on the post" }
+      - { label: Trips, name: trips, widget: relation, collection: trip_pages,
+          value_field: '{{slug}}', display_fields: [title], search_fields: [title],
+          multiple: true, required: false,
+          hint: "Pick an existing trip, or use 'Add Trip page' to create a new one" }
+      - { label: Tags, name: tags, widget: relation, collection: tag_pages,
+          value_field: '{{slug}}', display_fields: [title], search_fields: [title],
+          multiple: true, required: false,
+          hint: "Pick existing tags, or use 'Add Tag' to create a new one" }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: holidays
+    label: Holidays
+    label_singular: Holiday
+    folder: content/holidays
+    path: "{{year}}-{{month}}-{{day}}-{{slug}}/index"
+    media_folder: ''
+    public_folder: ''
+    create: true
+    slug: "{{slug}}"
+    sortable_fields:
+      fields: [date, title, wp_published]
+      default:
+        field: date
+        direction: descending
+    view_groups:
+      - { label: 'Holiday type', field: holiday-types }
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime, format: 'YYYY-MM-DD', date_format: 'YYYY-MM-DD', time_format: false }
+      - { label: Draft, name: draft, widget: boolean, default: false }
+      - { label: Slug, name: slug, widget: string, required: false, hint: "Leave blank to derive from the title" }
+      - { label: Original blog date, name: wp_published, widget: datetime, format: 'YYYY-MM-DD', date_format: 'YYYY-MM-DD', time_format: false, required: false }
+      - { label: Holiday type, name: holiday-types, widget: select, required: false,
+          options: [Skiing, City break, In the sun, Family] }
+      - { label: Map link, name: map, widget: string, required: false,
+          hint: "Any Google Maps share link; shows a 'View on map' button on the post" }
+      - { label: Trips, name: trips, widget: relation, collection: trip_pages,
+          value_field: '{{slug}}', display_fields: [title], search_fields: [title],
+          multiple: true, required: false,
+          hint: "Pick an existing trip, or use 'Add Trip page' to create a new one" }
+      - { label: Tags, name: tags, widget: relation, collection: tag_pages,
+          value_field: '{{slug}}', display_fields: [title], search_fields: [title],
+          multiple: true, required: false,
+          hint: "Pick existing tags, or use 'Add Tag' to create a new one" }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: trip_pages
+    label: Trip pages
+    label_singular: Trip page
+    folder: content/trips
+    path: '{{slug}}/_index'
+    extension: md
+    format: frontmatter
+    create: true
+    media_folder: ''
+    public_folder: ''
+    slug: '{{slug}}'
+    identifier_field: title
+    fields:
+      - { label: Trip name, name: title, widget: string,
+          hint: "Shown on the site, e.g. France 2026. Posts store the folder name (slug), e.g. france-2026" }
+      - { label: Intro, name: body, widget: markdown, required: false }
+
+  - name: site_type_pages
+    label: Site type pages
+    label_singular: Site type page
+    folder: content/site-types
+    path: '{{slug}}/_index'
+    extension: md
+    format: frontmatter
+    create: true
+    media_folder: ''
+    public_folder: ''
+    slug: '{{slug}}'
+    identifier_field: title
+    fields:
+      - { label: Site type name, name: title, widget: string,
+          hint: "Must exactly match one of the Site type options on a campervan post: Aire, CAMC, CCC, Independent, Off-Grid, Pub" }
+      - { label: Intro, name: body, widget: markdown, required: false }
+
+  - name: holiday_type_pages
+    label: Holiday type pages
+    label_singular: Holiday type page
+    folder: content/holiday-types
+    path: '{{slug}}/_index'
+    extension: md
+    format: frontmatter
+    create: true
+    media_folder: ''
+    public_folder: ''
+    slug: '{{slug}}'
+    identifier_field: title
+    fields:
+      - { label: Holiday type name, name: title, widget: string,
+          hint: "Must exactly match one of the Holiday type options on a holiday post: Skiing, City break, In the sun, Family" }
+      - { label: Intro, name: body, widget: markdown, required: false }
+
+  - name: tag_pages
+    label: Tags
+    label_singular: Tag
+    folder: content/tags
+    path: '{{slug}}/_index'
+    extension: md
+    format: frontmatter
+    create: true
+    media_folder: ''
+    public_folder: ''
+    slug: '{{slug}}'
+    identifier_field: title
+    fields:
+      - { label: Tag name, name: title, widget: string,
+          hint: "Shown on the site; the stored tag is the slug, e.g. 'France 2026' -> france-2026" }
+      - { label: Intro, name: body, widget: markdown, required: false }

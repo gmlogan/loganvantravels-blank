@@ -1,0 +1,34 @@
+{{- /*
+  Photo gallery: a grid of the Markdown images between the tags. Inserted by the "Gallery" block
+  in the CMS (static/admin/gallery.js); can be used any number of times in a post.
+
+    {{< gallery >}}
+    ![alt](IMG_1.webp "Optional caption")
+
+    ![](IMG_2.webp)
+    {{< /gallery >}}
+
+  Images are looked up as page resources (the post's own folder) and rendered through the same
+  responsive picture partial as single images; anything else falls back to a plain <img>.
+*/ -}}
+{{- $page := .Page -}}
+{{- $lazy := site.Params.enableImageLazyLoading | default true -}}
+{{- $webp := site.Params.enableImageWebp | default true -}}
+<div class="gallery not-prose">
+  {{- range findRESubmatch `!\[([^\]]*)\]\(([^)\s]+)(?:\s+"((?:[^"\\]|\\.)*)")?\)` .Inner }}
+    {{- $alt := index . 1 }}
+    {{- $src := index . 2 }}
+    {{- $caption := replace (index . 3) `\"` `"` }}
+    {{- $img := $page.Resources.GetMatch (urls.Parse $src).Path }}
+    <figure>
+      <a href="{{ with $img }}{{ .RelPermalink }}{{ else }}{{ $src }}{{ end }}">
+        {{- with $img }}
+          {{- partial "picture.html" (dict "img" . "alt" $alt "lazy" $lazy "webp" $webp) }}
+        {{- else }}
+          <img src="{{ $src }}" alt="{{ $alt }}" loading="lazy">
+        {{- end }}
+      </a>
+      {{- with $caption }}<figcaption>{{ . | markdownify }}</figcaption>{{ end }}
+    </figure>
+  {{- end }}
+</div>

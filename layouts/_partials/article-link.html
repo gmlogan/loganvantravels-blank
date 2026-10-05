@@ -1,0 +1,112 @@
+<article class="flex flex-col">
+  {{- $images := $.Resources.ByType "image" }}
+  {{- $thumbnail := $images.GetMatch (.Params.thumbnail | default "*thumb*") }}
+  {{- if not $thumbnail }}
+    {{/* No thumb/feature-named image and no explicit thumbnail param: fall
+         back to whichever image is embedded first in the post body (read
+         from the raw markdown, since Congo's image render hook rewrites
+         embedded <img> tags to processed derivatives), so authors never
+         have to rename files. */}}
+    {{- with findRE `!\[[^\]]*\]\([^)]+\)` $.RawContent 1 }}
+      {{- $paren := index (findRE `\([^)]+\)` (index . 0) 1) 0 }}
+      {{- $ref := $paren | strings.TrimPrefix "(" | strings.TrimSuffix ")" }}
+      {{- $ref = index (split $ref " ") 0 }}
+      {{- $name := index (split $ref "?") 0 }}
+      {{- $thumbnail = $images.GetMatch $name }}
+    {{- end }}
+  {{- end }}
+  {{- $feature := $images.GetMatch (.Params.feature | default "*feature*") | default $thumbnail }}
+  {{- with $feature }}
+    <a
+      href="{{ with $.Params.externalUrl }}
+        {{ . }}
+      {{ else }}
+        {{ $.Permalink }}
+      {{ end }}"
+      aria-label="{{ $.Title | emojify }}"
+      class="mb-4 block"
+    >
+      {{ if eq .MediaType.SubType "svg" }}
+        <img
+          alt="{{ $.Params.featureAlt | default $.Params.thumbnailAlt | default "" }}"
+          class="aspect-[4/3] w-full rounded-md bg-neutral-100 object-contain dark:bg-neutral-700"
+          src="{{ .Permalink }}"
+        />
+      {{ else }}
+        {{/* JPEG/TIFF store rotation as EXIF metadata rather than baking it
+             into the pixels, and Hugo's Fill doesn't auto-rotate, so a
+             portrait photo shot sideways gets Filled while still landscape.
+             .Meta.Orientation is 0 for formats/files with no EXIF orientation
+             tag (PNG, WebP, stripped JPEGs, malformed data), so those just
+             fall through with no rotation applied. */}}
+        {{ $rotate := "" }}
+        {{ with .Meta }}
+          {{ if eq .Orientation 3 }}
+            {{ $rotate = " r180" }}
+          {{ else if eq .Orientation 6 }}
+            {{ $rotate = " r270" }}
+          {{ else if eq .Orientation 8 }}
+            {{ $rotate = " r90" }}
+          {{ end }}
+        {{ end }}
+        <img
+          alt="{{ $.Params.featureAlt | default $.Params.thumbnailAlt | default "" }}"
+          class="aspect-[4/3] w-full rounded-md object-cover"
+          srcset="
+            {{- (.Fill (printf "480x360 smart%s" $rotate)).Permalink }}
+            1x, {{- (.Fill (printf "960x720 smart%s" $rotate)).Permalink }} 2x"
+          src="{{ (.Fill (printf "480x360 smart%s" $rotate)).Permalink }}"
+          width="480"
+          height="360"
+          {{ if $.Site.Params.enableImageLazyLoading | default true }}
+            loading="lazy"
+          {{ end }}
+        />
+      {{ end }}
+    </a>
+  {{- end }}
+  <div>
+    <h3 class="flex items-center text-xl font-semibold">
+      {{ with .Params.externalUrl }}
+        <div>
+          <a
+            class="text-neutral-800 decoration-primary-500 hover:underline hover:underline-offset-2 dark:text-neutral"
+            href="{{ . }}"
+            target="_blank"
+            rel="external"
+            >{{ $.Title | emojify }}</a
+          >
+          <span
+            class="cursor-default align-top text-xs text-neutral-400 dark:text-neutral-500"
+            title="{{ i18n "list.externalurl_title" }}"
+          >
+            <span class="rtl:hidden">&#8599;</span>
+            <span class="ltr:hidden">&#8598;</span>
+          </span>
+        </div>
+      {{ else }}
+        <a
+          class="text-neutral-800 decoration-primary-500 hover:underline hover:underline-offset-2 dark:text-neutral"
+          href="{{ .Permalink }}"
+          >{{ .Title | emojify }}</a
+        >
+      {{ end }}
+      {{ if and .Draft .Site.Params.article.showDraftLabel }}
+        <div class="ms-2">
+          {{ partial "badge.html" (i18n "article.draft" | emojify) }}
+        </div>
+      {{ end }}
+      {{ if templates.Exists "_partials/extend-article-link.html" }}
+        {{ partial "extend-article-link.html" . }}
+      {{ end }}
+    </h3>
+    <div class="text-sm text-neutral-500 dark:text-neutral-400">
+      {{ partial "article-meta.html" . }}
+    </div>
+    {{ if .Params.showSummary | default (.Site.Params.list.showSummary | default false) }}
+      <div class="prose py-1 dark:prose-invert">
+        {{ .Summary | emojify }}
+      </div>
+    {{ end }}
+  </div>
+</article>

@@ -1,0 +1,150 @@
+{{ $img := .img }}
+{{ $alt := .alt }}
+{{ $class := .class }}
+{{ $lazy := .lazy }}
+{{ $webp := .webp }}
+{{ $lqip := .lqip | default false }}
+{{ $x2 := .x2 | default false }}
+
+{{ with $img }}
+  {{ if (eq .MediaType.SubType "svg") }}
+    {{ $width := "" }}
+    {{ $height := "" }}
+    {{ $svgContent := .Content }}
+    {{ range (findRESubmatch `<svg[^>]*width=["']([.0-9]*)["'a-zA-Z]` $svgContent 1) }}
+      {{ $width = index . 1 }}
+    {{ end }}
+    {{ range (findRESubmatch `<svg[^>]*height=["']([.0-9]*)["'a-zA-Z]` $svgContent 1) }}
+      {{ $height = index . 1 }}
+    {{ end }}
+    {{ if (eq "" $width $height) }}
+      {{ range (findRESubmatch `<svg[^>]*viewBox=["']?([.0-9]*) ([.0-9]*) ([.0-9]*) ([.0-9]*)` $svgContent 1) }}
+        {{ $width = index . 3 }}
+        {{ $height = index . 4 }}
+      {{ end }}
+    {{ end }}
+    {{ if (eq "" $width $height) }}
+      {{ warnf "[CONGO] Can't detect width and height for SVG %s" .Permalink }}
+      {{/* do not use lazy without dimensions */}}
+      {{ $lazy = false }}
+    {{ end }}
+    <!-- prettier-ignore -->
+    <picture {{ with $class }} class="{{ . }}" {{ end }}>
+      <img
+        src="{{ .Permalink }}"
+        {{ with $width }}width="{{ . }}"{{ end }}
+        {{ with $height }}height="{{ . }}"{{ end }}
+        {{ with $class }}class="{{ . }}"{{ end }}
+        {{ with $alt }}alt="{{ . }}"{{ end }}
+        {{ with $lazy }}loading="lazy" decoding="async"{{ end }}
+      />
+    </picture>
+  {{ else }}
+    {{/* JPEG/TIFF store rotation as EXIF metadata rather than baking it into
+         the pixels, and Hugo's Resize doesn't auto-rotate, so a portrait
+         photo shot sideways gets processed while still landscape.
+         .Meta.Orientation is 0 for formats/files with no EXIF orientation
+         tag (PNG, WebP, stripped JPEGs, malformed data), so those just fall
+         through with no rotation applied. A 90/270 correction swaps which
+         raw dimension is "width" vs "height", so .Width/.Height below can't
+         be used directly once rotation is involved - $width/$height (post
+         rotation) are used everywhere instead, and the "image is already
+         small enough, just link to it" shortcuts are dropped whenever a
+         rotation needs to be baked in, since that always requires
+         processing. */}}
+    {{ $rotate := "" }}
+    {{ with .Meta }}
+      {{ if eq .Orientation 3 }}
+        {{ $rotate = " r180" }}
+      {{ else if eq .Orientation 6 }}
+        {{ $rotate = " r270" }}
+      {{ else if eq .Orientation 8 }}
+        {{ $rotate = " r90" }}
+      {{ end }}
+    {{ end }}
+    {{ $swapped := or (eq $rotate " r90") (eq $rotate " r270") }}
+    <picture
+      {{ with $class }}class="{{ . }}"{{ end }}
+      {{ if $lqip }}
+        {{ $bg := (.Resize (printf "20x webp q20%s" $rotate)).Content | base64Encode }}
+        style="background-image:url(data:image/webp;base64,{{ $bg }});background-size:cover"
+      {{ end }}
+    >
+      {{ $width := .Width }}
+      {{ $height := .Height }}
+      {{ if $swapped }}
+        {{ $width = .Height }}
+        {{ $height = .Width }}
+      {{ end }}
+      {{ if $x2 }}
+        {{ $width = div $width 2 }}
+        {{ $height = div $height 2 }}
+      {{ end }}
+      {{ $noRotate := eq $rotate "" }}
+      {{ if and $webp (ne .MediaType.SubType "gif") }}
+        <source
+          {{ if lt $width 660 }}
+            {{ with .Resize (printf "%dx%d webp%s" $width $height $rotate) }}
+              srcset="{{ .Permalink }}"
+            {{ end }}
+          {{ else }}
+            srcset=" {{- (.Resize (printf "330x webp%s" $rotate)).Permalink }} 330w,
+            {{- (.Resize (printf "660x webp%s" $rotate)).Permalink }} 660w
+            {{ if gt $width 1024 }}
+              ,{{ (.Resize (printf "1024x webp%s" $rotate)).Permalink }} 1024w
+            {{ else if $noRotate }}
+              ,{{ .Permalink }} {{ .Width }}w
+            {{ else }}
+              {{ with .Resize (printf "%dx%d webp%s" $width $height $rotate) }}
+                ,{{ .Permalink }} {{ .Width }}w
+              {{ end }}
+            {{ end }}
+            {{ if gt $width 1320 }}
+              ,{{ (.Resize (printf "1320x webp%s" $rotate)).Permalink }} 1320w
+            {{ else if $noRotate }}
+              ,{{ .Permalink }} {{ .Width }}w
+            {{ else }}
+              {{ with .Resize (printf "%dx%d webp%s" $width $height $rotate) }}
+                ,{{ .Permalink }} {{ .Width }}w
+              {{ end }}
+            {{ end }}"
+          {{ end }}
+          sizes="100vw"
+          type="image/webp"
+        />
+      {{ end }}
+      <img
+        width="{{ $width }}"
+        height="{{ $height }}"
+        {{ with $class }}class="{{ . }}"{{ end }}
+        {{ with $alt }}alt="{{ . }}"{{ end }}
+        {{ with $lazy }}loading="lazy" decoding="async"{{ end }}
+        {{ if and (lt $width 660) $noRotate }}
+          src="{{ .Permalink }}"
+        {{ else }}
+          src="{{ (.Resize (printf "660x%s" $rotate)).Permalink }}" srcset=" {{- (.Resize (printf "330x%s" $rotate)).Permalink }} 330w,
+          {{- (.Resize (printf "660x%s" $rotate)).Permalink }} 660w
+          {{ if gt $width 1024 }}
+            ,{{ (.Resize (printf "1024x%s" $rotate)).Permalink }} 1024w
+          {{ else if $noRotate }}
+            ,{{ .Permalink }} {{ .Width }}w
+          {{ else }}
+            {{ with .Resize (printf "%dx%d%s" $width $height $rotate) }}
+              ,{{ .Permalink }} {{ .Width }}w
+            {{ end }}
+          {{ end }}
+          {{ if gt $width 1320 }}
+            ,{{ (.Resize (printf "1320x%s" $rotate)).Permalink }} 1320w
+          {{ else if $noRotate }}
+            ,{{ .Permalink }} {{ .Width }}w
+          {{ else }}
+            {{ with .Resize (printf "%dx%d%s" $width $height $rotate) }}
+              ,{{ .Permalink }} {{ .Width }}w
+            {{ end }}
+          {{ end }}"
+          sizes="100vw"
+        {{ end }}
+      />
+    </picture>
+  {{ end }}
+{{ end }}

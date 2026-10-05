@@ -1,0 +1,91 @@
+[[main]]
+  identifier = "campervan"
+  name = "Campervan"
+  pageRef = "/campervan"
+  weight = 10
+
+[[main]]
+  identifier = "campervan-all"
+  parent = "campervan"
+  name = "All"
+  pageRef = "/campervan"
+  weight = 10
+
+[[main]]
+  identifier = "campervan-aire"
+  parent = "campervan"
+  name = "Aire"
+  pageRef = "/site-types/aire"
+  weight = 20
+
+[[main]]
+  identifier = "campervan-camc"
+  parent = "campervan"
+  name = "CAMC"
+  pageRef = "/site-types/camc"
+  weight = 30
+
+[[main]]
+  identifier = "campervan-ccc"
+  parent = "campervan"
+  name = "CCC"
+  pageRef = "/site-types/ccc"
+  weight = 40
+
+[[main]]
+  identifier = "campervan-event"
+  parent = "campervan"
+  name = "Event"
+  pageRef = "/site-types/event"
+  weight = 50
+
+[[main]]
+  identifier = "campervan-independent"
+  parent = "campervan"
+  name = "Independent"
+  pageRef = "/site-types/independent"
+  weight = 60
+
+[[main]]
+  identifier = "campervan-pub"
+  parent = "campervan"
+  name = "Pub"
+  pageRef = "/site-types/pub"
+  weight = 70
+
+[[main]]
+  identifier = "holidays"
+  name = "Holidays"
+  pageRef = "/holidays"
+  weight = 20
+
+[[main]]
+  identifier = "holidays-all"
+  parent = "holidays"
+  name = "All"
+  pageRef = "/holidays"
+  weight = 10
+
+[[main]]
+  identifier = "holidays-city-break"
+  parent = "holidays"
+  name = "City Breaks"
+  pageRef = "/holiday-types/city-break"
+  weight = 20
+
+[[main]]
+  identifier = "holidays-skiing"
+  parent = "holidays"
+  name = "Skiing"
+  pageRef = "/holiday-types/skiing"
+  weight = 30
+
+[[main]]
+  name = "Trips"
+  pageRef = "/trips"
+  weight = 40
+
+[[main]]
+  name = "About"
+  pageRef = "/pages/about"
+  weight = 60

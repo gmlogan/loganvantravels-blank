@@ -1,0 +1,22 @@
+{
+  "name": "loganvantravels-blank (Hugo)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/hugo:1": {
+      "extended": true,
+      "version": "0.165.0"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12",
+      "installTools": false
+    }
+  },
+  "postCreateCommand": "git submodule update --init --recursive",
+  "forwardPorts": [1313],
+  "portsAttributes": {
+    "1313": {
+      "label": "Hugo preview",
+      "onAutoForward": "openPreview"
+    }
+  }
+}
